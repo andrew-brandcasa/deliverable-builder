@@ -20,7 +20,7 @@ const ASSETS = join(__dirname, "..", "assets");
 
 export const DEFAULT_THEME = {
   page: { width: 960, height: 1280 },
-  margin: { x: 44, top: 40, bottom: 40 },
+  margin: { x: 37, top: 30, bottom: 30 },
   band: { height: 18, reviewSize: 10, reviewText: "REVIEW DOCUMENT" },
   colors: {
     bg: "#FAFAFA",
@@ -29,18 +29,18 @@ export const DEFAULT_THEME = {
     border: "#1A1A1A",
     dot: "#000000",
   },
-  title: { size: 26, lineGap: 6, subSize: 15, gapBelow: 30 },
+  title: { size: 26, lineGap: 4, subSize: 17, gapBelow: 13 },
   card: {
-    radius: 10,
-    border: 1,
-    padX: 24,
-    padTop: 20,
-    padBottom: 24,
+    radius: 11,
+    border: 0.75,
+    padX: 13,
+    padTop: 15,
+    padBottom: 8,
     labelSize: 12,
-    gapAfterLabel: 16,
-    gapBetween: 22,
+    gapAfterLabel: 15,
+    gapBetween: 28,
   },
-  grid: { columns: 2, gap: 12 },
+  grid: { columns: 2, gap: 13 },
   texture: { enabled: true, step: 30, radius: 0.7, opacity: 0.05 },
   fonts: {
     regular: join(ASSETS, "fonts", "Inter-Regular.ttf"),
@@ -216,8 +216,8 @@ function drawTitleBlock(doc, t, manifest, left, width, getY, setY) {
   doc.text(manifest.title, left, y, { width, lineGap: t.title.lineGap });
   y = doc.y;
   if (manifest.subtitle) {
-    y += 6;
-    doc.font("semibold").fontSize(t.title.subSize).fillColor(t.colors.muted);
+    y += 7;
+    doc.font("semibold").fontSize(t.title.subSize).fillColor(t.colors.text);
     doc.text(manifest.subtitle, left, y, { width });
     y = doc.y;
   }
