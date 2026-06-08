@@ -26,7 +26,7 @@ You should see `v18` or higher.
 
 ## 2. Get the project
 
-Clone it (ask Andrew for access — it's a private repo):
+Clone it (it's a public repo — no access needed):
 ```bash
 git clone https://github.com/andrew-brandcasa/deliverable-builder.git
 cd deliverable-builder
@@ -41,24 +41,35 @@ no system packages.
 
 ---
 
-## 4. Get your Figma token (one time)
+## 4. Connect Figma (get your access token — one time, ~60 sec)
 
-The tool reads creatives from Figma using a personal token tied to your account.
+The tool reads your creatives straight from Figma using a **personal access token**
+tied to your own account. It only needs *read* access.
 
-1. Go to <https://www.figma.com/settings>.
-2. Scroll to **Personal access tokens** → **Generate new token**.
-3. Name it `deliverable-builder`. For scopes, **File content: Read** is enough.
-4. Copy the token (starts with `figd_`). You won't be able to see it again.
+1. Open **<https://www.figma.com/settings>** (or in Figma: your avatar, top-left → **Settings**).
+2. Click the **Security** tab.
+3. Find **Personal access tokens** → click **Generate new token**.
+4. Name it `deliverable-builder`. Leave the scopes at the default —
+   **File content: Read-only** is all it needs. (Expiration: your call.)
+5. Click **Generate token**, then **Copy** it. It starts with `figd_…`.
+   👉 Copy it right away — Figma shows it only once.
 
-Now hand it to the project with one command:
+Now hand it to the tool with one command:
 ```bash
 npm run setup
 ```
-It asks for your token (the typing is hidden), saves it to `.env`, and checks it
-with Figma right away. You should see `✓ valid`.
+Paste the token when asked (your typing stays hidden), and it saves + verifies it
+automatically. You should see **`✓ valid`**. Done.
 
-> Keep this token private — it's like a password for your Figma. The `.env` file is
-> git-ignored so it never gets committed or shared.
+> 🔒 Your token is private — treat it like a password for your Figma. It's saved to a
+> local `.env` file that's git-ignored, so it's never committed or shared. Every
+> teammate uses their own token.
+
+**Shortcut for Claude Code users:** if your Claude Code already has the Figma (MCP)
+connection set up, you can skip the token entirely — just open this folder in Claude
+Code and ask it to build; it'll read the creatives through that connection. The token
+above is the recommended default, because it works for everyone, on any Figma plan,
+in or out of Claude Code.
 
 ---
 
@@ -77,8 +88,8 @@ Everything should be a green ✓.
 **Option A — in Claude Code (recommended):**
 Open this folder in Claude Code and say:
 
-> "Build the deliverable for `<paste Figma link>`, title 'Anuncios en Inglés
-> Variaciones de Junio 2026', subtitle 'Entrega 2'."
+> "Build the deliverable for `<paste Figma link>`, title 'Summer Campaign —
+> Variations — June 2026', subtitle 'Delivery 2'."
 
 The `deliverable-builder` skill handles the rest and gives you the PDF.
 

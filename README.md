@@ -33,7 +33,8 @@ cd deliverable-builder
 npm install
 npm run setup          # paste your Figma token when asked (hidden) — it verifies it for you
 ```
-> The repo is **private** — teammates need to be granted access first (GitHub → repo → Settings → Collaborators).
+> First time on a machine? You'll also need **Node 18+** and a **Figma access token** —
+> the 60-second walkthrough is in **[SETUP.md](SETUP.md)** (step 4, "Connect Figma").
 
 That's it. Now build a deliverable from a Figma link:
 
