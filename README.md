@@ -23,51 +23,49 @@ are compressed** — so it looks identical on screen at a fraction of the size.
 
 ---
 
-## Get started from the repo URL (≈ 3 minutes)
+## How the team uses it — in the Claude Code desktop app (no terminal)
 
-Anyone on the team runs these four lines once:
+Your team never touches a command line. They open the **Claude Code desktop app**,
+talk to it, and Claude runs everything (clone, install, setup, build) behind the scenes.
+
+**First time — once per person (~2 min).** Paste this to Claude Code:
+
+> Clone https://github.com/andrew-brandcasa/deliverable-builder and set it up so I can
+> build client deliverables. Walk me through connecting Figma.
+
+Claude clones the repo, installs it, and gets Figma connected — it asks you to paste a
+**Figma access token** once (or uses your existing Figma connection if you have one).
+The only thing you may need installed first is **Node** (free, from nodejs.org → LTS).
+
+**Every time after — just ask:**
+
+> Build a deliverable from this Figma link <paste link>, title "Summer Campaign —
+> June 2026", subtitle "Delivery 2".
+
+…and Claude hands back the finished PDF (typically 1–3 MB). That's the whole workflow.
+
+<details>
+<summary><b>Prefer the command line?</b> (optional — same engine)</summary>
 
 ```bash
 git clone https://github.com/andrew-brandcasa/deliverable-builder.git
 cd deliverable-builder
 npm install
-npm run setup          # paste your Figma token when asked (hidden) — it verifies it for you
+npm run setup        # paste your Figma token when asked (hidden), auto-verified
+npm run build -- "<figma-link>" --title "Summer Campaign — June 2026" --subtitle "Delivery 2"
 ```
-> First time on a machine? You'll also need **Node 18+** and a **Figma access token** —
-> the 60-second walkthrough is in **[SETUP.md](SETUP.md)** (step 4, "Connect Figma").
-
-That's it. Now build a deliverable from a Figma link:
-
-```bash
-npm run build -- "https://www.figma.com/design/XXXX/Delivery?node-id=2-71332" \
-  --title "Anuncios en Inglés Variaciones de Junio 2026" --subtitle "Entrega 2"
-```
-
-Out comes `out/<title>.pdf`. (Only prerequisite before the clone: **Node 18+** —
-see **[SETUP.md](SETUP.md)** for the click-by-click version, including installing
-Node and creating a Figma token.)
-
-> Prefer Claude Code? Open this folder and say: *"Build a deliverable from this
-> Figma link `<link>`, title '…', subtitle 'Entrega 2'."* The bundled skill does the rest.
+First-time details (installing Node, creating a Figma token) are in **[SETUP.md](SETUP.md)**.
+</details>
 
 ---
 
-## Two ways to use it
+## Under the hood
 
-### 1. In Claude Code (easiest for the team)
-Open this repo in Claude Code and just say what you want:
-
-> "Build the deliverable for this Figma link <paste>, title 'Anuncios en Inglés
-> Variaciones de Junio 2026', subtitle 'Entrega 2'."
-
-The **`deliverable-builder` skill** (in `.claude/skills/`) takes over: it confirms
-the structure, runs the build, and hands you back the PDF and its size. It can also
-inspect the Figma file to map the Creatives correctly if the layer naming is unusual.
-
-### 2. From the command line
-```bash
-npm run build -- "<figma-url>" --title "<title>" --subtitle "<subtitle>"
-```
+The **`deliverable-builder` skill** (in `.claude/skills/`) is what Claude Code follows:
+it reads the creatives from Figma, confirms how they map to "Creative N" cards, runs the
+build, and hands back the PDF — adapting if the Figma layer naming is unusual. If your
+Claude Code has Figma connected, it can pull creatives through that connection with no
+token at all; otherwise it uses a Figma access token (same lightweight result either way).
 
 ---
 

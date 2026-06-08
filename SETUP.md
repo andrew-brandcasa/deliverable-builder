@@ -1,10 +1,15 @@
 # Setup — for anyone on the team
 
-This is the one-time setup. It takes about 5 minutes. After this, building a
-deliverable is one command (or one sentence to Claude Code).
+> **Using the Claude Code desktop app? You don't have to do these by hand.** Paste the
+> kickoff prompt from the [README](README.md) and Claude runs the setup for you, pausing
+> only so you can paste your Figma token (step 4 below). This page is the manual
+> reference — handy if you hit a snag or prefer the terminal.
 
-You'll do five things: install Node, get the project, install it, get a Figma
-token, and verify.
+This is the one-time setup. It takes about 5 minutes. After this, building a
+deliverable is one sentence to Claude Code (or one command).
+
+You'll do five things: install Node, get the project, install it, connect Figma,
+and verify.
 
 ---
 
