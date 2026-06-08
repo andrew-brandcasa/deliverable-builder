@@ -33,40 +33,44 @@ Run these yourself; only involve the teammate if something needs their input.
 3. Node: if `node -v` fails, tell the teammate to install Node LTS from nodejs.org
    (the one thing they may need to do once), then continue.
 
-## Pulling the creatives from Figma — two paths
+## Getting the creatives onto the template
 
-Pick **Path A** if this Claude Code has Figma connected (you can see Figma MCP tools
-like `get_metadata` / `get_screenshot`). It needs no token. Otherwise use **Path B**.
+**The brandcasa template is built into this tool (it's code) — nobody rebuilds it in
+Figma.** The teammate just hands you the **creatives**; you drop them onto the template.
+They arrive one of two ways — handle whichever they gave you.
 
-### Path A — Figma connected (no token, preferred in the desktop app)
-1. From the Figma link, get the fileKey + node-id (convert `-` to `:`).
-2. Use `get_metadata` / `get_design_context` to read the delivery frame and find the
-   "Creative N" groups and the variation nodes inside each. Briefly confirm with the
-   teammate: *"6 creatives, 2 variations each, title X — build it?"*
-3. For every variation node, call `get_screenshot` (maxDimension ~1600) and download
-   the returned PNG with `curl` into `out/<slug>/images/creative-<n>/<k>.png`.
-4. Write `out/<slug>/manifest.json`:
+### They gave you the files (the simplest path — no Figma, no token)
+Image files dragged into the chat, or a folder of exported ads.
+1. Work out how they group into "Creative N" cards. Infer if obvious, otherwise ask one
+   short question:
+   - subfolders `creative-1/`, `creative-2/` → those are the groups, or
+   - filenames like `creative1-a.png`, `creative1-b.png` → group "Creative 1", or
+   - the teammate tells you ("Creative 1 = these two variations"), or
+   - default to one Creative per file.
+2. Copy the files into `out/<slug>/images/creative-<n>/...`.
+3. Write `out/<slug>/manifest.json`:
    ```json
-   {
-     "title": "<title>", "subtitle": "<subtitle>",
-     "groups": [
-       { "name": "Creative 1", "images": ["images/creative-1/1.png", "images/creative-1/2.png"] }
-     ]
-   }
+   { "title": "<title>", "subtitle": "<subtitle>",
+     "groups": [ { "name": "Creative 1", "images": ["images/creative-1/1.png", "images/creative-1/2.png"] } ] }
    ```
-5. Build: `npm run build:manifest -- out/<slug>/manifest.json --out out/<slug>.pdf`
+4. Build: `npm run build:manifest -- out/<slug>/manifest.json --out out/<slug>.pdf`
 
-### Path B — Figma token (works anywhere, any Figma plan)
-1. If setup is missing (`npm run doctor` flags the token), ask the teammate:
-   *"Paste your Figma token — get one at figma.com/settings → Security → Personal
-   access tokens → Generate (read-only is fine). It starts with `figd_`."*
-2. Save + verify it for them (non-interactive): `npm run setup -- "<their-token>"`.
-   Confirm you see `✓ valid`. (You may also just write `FIGMA_TOKEN=<token>` into `.env`.)
-3. Build: `npm run build -- "<figma-url>" --title "<title>" --subtitle "<subtitle>" --out "out/<slug>.pdf"`
-   - If auto-detect maps the Creatives wrong, inspect with the Figma MCP and pass an
-     explicit plan: add `--plan plan.json` where plan.json is
-     `{ "title": "...", "subtitle": "...", "groups": [ { "name": "Creative 1", "nodeIds": ["3:2","3:3"] } ] }`
-     (node IDs in colon form).
+### They gave you a Figma link
+The link just says *where* the creatives live; you still drop them on the same template.
+Use the Figma connection if this Claude Code has it (no token); otherwise a token.
+
+**Figma connected (no token):** from the link get fileKey + node-id (convert `-` to `:`).
+Use `get_metadata` / `get_design_context` to find the "Creative N" groups + their variation
+nodes, confirm briefly, then `get_screenshot` each variation (maxDimension ~1600) → `curl`
+the PNG into `out/<slug>/images/creative-<n>/<k>.png` → write the manifest (above) → run
+`npm run build:manifest`.
+
+**Not connected (token):** if `npm run doctor` flags the token, ask for one (*figma.com/
+settings → Security → Personal access tokens → Generate, read-only; starts with `figd_`*),
+save + verify with `npm run setup -- "<token>"` (look for `✓ valid`), then build:
+`npm run build -- "<figma-url>" --title "<title>" --subtitle "<subtitle>" --out "out/<slug>.pdf"`.
+If the auto-detected grouping is wrong, inspect via the Figma MCP and pass
+`--plan plan.json` = `{ "title":"...", "groups":[ { "name":"Creative 1", "nodeIds":["3:2","3:3"] } ] }`.
 
 ## Gather the title
 - **Title** — e.g. "Summer Campaign — Variations — June 2026". If the teammate didn't

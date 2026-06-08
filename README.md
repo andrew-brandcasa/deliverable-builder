@@ -37,12 +37,19 @@ Claude clones the repo, installs it, and gets Figma connected — it asks you to
 **Figma access token** once (or uses your existing Figma connection if you have one).
 The only thing you may need installed first is **Node** (free, from nodejs.org → LTS).
 
-**Every time after — just ask:**
+**Every time after — just give it the creatives.** You don't build any template — the
+brandcasa template is already inside the tool. You just hand over the ad creatives and a
+title. Two ways, whichever you prefer:
 
-> Build a deliverable from this Figma link <paste link>, title "Summer Campaign —
-> June 2026", subtitle "Delivery 2".
+> **Drag the image files** into the chat: *"Build a deliverable from these — Creative 1 is
+> the first two, Creative 2 the next two. Title 'Summer Campaign — June 2026', subtitle
+> 'Delivery 2'."*
 
-…and Claude hands back the finished PDF (typically 1–3 MB). That's the whole workflow.
+> **…or paste a Figma link:** *"Build a deliverable from this Figma link `<link>`, title
+> 'Summer Campaign — June 2026', subtitle 'Delivery 2'."*
+
+Either way Claude drops them onto the template and hands back the finished PDF (typically
+1–3 MB). That's the whole workflow.
 
 <details>
 <summary><b>Prefer the command line?</b> (optional — same engine)</summary>
@@ -88,9 +95,10 @@ crisper for big screens → `--quality 85 --max-width 1600`.
 
 ---
 
-## Don't have a Figma link? Build from files
+## Build straight from creative files (no Figma needed)
 
-You can skip Figma entirely and build from a folder of images + a small manifest:
+In the desktop app you just drag the files in and Claude handles the rest. Under the
+hood that's a folder of images + a tiny manifest — which you can also run directly:
 
 ```bash
 npm run build:manifest -- examples/sample-delivery/manifest.json
