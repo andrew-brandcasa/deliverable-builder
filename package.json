@@ -1,0 +1,23 @@
+{
+  "name": "deliverable-builder",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Turn a Figma delivery link into a lightweight, brandcasa-templated client review PDF.",
+  "bin": {
+    "deliverable-builder": "src/cli.mjs"
+  },
+  "scripts": {
+    "setup": "node src/setup.mjs",
+    "build": "node src/cli.mjs",
+    "build:manifest": "node src/build-pdf.mjs",
+    "doctor": "node src/doctor.mjs"
+  },
+  "dependencies": {
+    "pdfkit": "^0.15.0",
+    "sharp": "^0.33.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

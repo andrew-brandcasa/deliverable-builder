@@ -1,0 +1,9 @@
+{
+  "brand": "Northwind",
+  "title": "Summer Campaign — Variations — June 2026",
+  "subtitle": "Delivery 2",
+  "groups": [
+    { "name": "Creative 1", "images": ["creative-1/a.png", "creative-1/b.png"] },
+    { "name": "Creative 2", "images": ["creative-2/a.png", "creative-2/b.png"] }
+  ]
+}
