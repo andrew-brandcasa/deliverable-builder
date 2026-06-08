@@ -19,6 +19,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ASSETS = join(__dirname, "..", "assets");
 
 export const DEFAULT_THEME = {
+  // Layout: "continuous" (default) = one tall page like the Figma delivery exports;
+  // set paged:true (CLI --paged) for fixed pages with page numbers, better for print.
+  paged: false,
   page: { width: 960, height: 1280 },
   margin: { x: 37, top: 30, bottom: 30 },
   band: { height: 18, reviewSize: 10, reviewText: "REVIEW DOCUMENT" },
@@ -93,69 +96,86 @@ export function renderDeliverable({ manifest, outPath, theme: overrides = {} }) 
     doc.on("error", reject);
     doc.pipe(stream);
 
-    // ---- page lifecycle -------------------------------------------------
-    let cursorY = 0;
-    const startPage = () => {
-      doc.addPage();
-      drawBackground(doc, t, PW, PH);
-      cursorY = contentTop;
-      if (process.env.DB_DEBUG)
-        console.error(`[startPage] pages=${doc.bufferedPageRange().count} cursorY=${cursorY}`);
-    };
-
-    // ---- first page + title block --------------------------------------
-    startPage();
-    drawTitleBlock(doc, t, manifest, contentLeft, contentWidth, () => cursorY, (y) => (cursorY = y));
-
-    // ---- creative cards -------------------------------------------------
+    // ---- shared group layout -------------------------------------------
     const columnsFor = (group) =>
       group.images.length <= 1 ? 1 : Math.min(t.grid.columns, group.images.length);
-
-    for (const group of manifest.groups) {
+    const layoutGroup = (group, maxRowH) => {
       const columns = columnsFor(group);
-      // Images live INSIDE the card padding, so columns divide the inner width.
-      const innerW = contentWidth - 2 * t.card.padX;
+      const innerW = contentWidth - 2 * t.card.padX; // images live inside the card padding
       const colW = (innerW - (columns - 1) * t.grid.gap) / columns;
-
-      // Available height for a single image row (used to cap very tall creatives
-      // so a single image can never exceed one page).
-      const maxRowH =
-        contentBottom -
-        contentTop -
-        (t.card.padTop + t.card.labelSize + t.card.gapAfterLabel + t.card.padBottom);
-
-      // Pre-compute each image's drawn box within its cell.
       const boxes = group.images.map((img) => fitBox(img, colW, maxRowH));
       const rows = chunk(boxes, columns).map((row) => ({
         cells: row,
         height: Math.max(...row.map((b) => b.h)),
       }));
+      const labelH = t.card.labelSize + t.card.gapAfterLabel;
+      const cardH =
+        t.card.padTop +
+        labelH +
+        rows.reduce((s, r, i) => s + r.height + (i ? t.grid.gap : 0), 0) +
+        t.card.padBottom;
+      return { group, columns, colW, rows, cardH };
+    };
 
-      renderGroup(doc, t, {
-        group,
-        rows,
-        columns,
-        colW,
-        contentLeft,
-        contentWidth,
-        contentTop,
-        contentBottom,
-        getY: () => cursorY,
-        setY: (y) => (cursorY = y),
-        startPage,
-      });
-    }
+    // ---- continuous layout: ONE tall page, like the Figma delivery ------
+    const renderContinuous = () => {
+      const groups = manifest.groups.map((g) => layoutGroup(g, Infinity));
+      doc.font("bold").fontSize(t.title.size);
+      let titleH = doc.heightOfString(manifest.title, { width: contentWidth, lineGap: t.title.lineGap });
+      if (manifest.subtitle) {
+        doc.font("semibold").fontSize(t.title.subSize);
+        titleH += 7 + doc.heightOfString(manifest.subtitle, { width: contentWidth });
+      }
+      titleH += t.title.gapBelow;
+      const cardsH = groups.reduce((s, g, i) => s + g.cardH + (i ? t.card.gapBetween : 0), 0);
+      const totalH = contentTop + titleH + cardsH + 20 + t.band.height + t.margin.bottom;
+      if (totalH > 14000) return renderPaged(); // exceeds the PDF single-page limit → paginate
 
-    // ---- decorate every page with header + footer ----------------------
-    const range = doc.bufferedPageRange();
-    for (let i = 0; i < range.count; i++) {
-      doc.switchToPage(range.start + i);
+      doc.addPage({ size: [PW, totalH], margin: 0 });
+      drawBackground(doc, t, PW, totalH);
       drawHeader(doc, t, contentLeft, contentRight, headerY);
-      drawFooter(doc, t, contentLeft, contentRight, footerY, i + 1, range.count, manifest);
-    }
+      let y = contentTop;
+      drawTitleBlock(doc, t, manifest, contentLeft, contentWidth, () => y, (ny) => (y = ny));
+      for (const g of groups) {
+        drawCard(doc, t, { ...g, contentLeft, contentWidth, y });
+        y += g.cardH + t.card.gapBetween;
+      }
+      // matching footer band (logo + REVIEW DOCUMENT), like the template's bottom band
+      drawHeader(doc, t, contentLeft, contentRight, totalH - t.margin.bottom - t.band.height);
+      doc.end();
+    };
 
-    doc.flushPages();
-    doc.end();
+    // ---- paginated layout: fixed pages (use --paged, good for printing) -
+    const renderPaged = () => {
+      let cursorY = 0;
+      const startPage = () => {
+        doc.addPage();
+        drawBackground(doc, t, PW, PH);
+        cursorY = contentTop;
+      };
+      startPage();
+      drawTitleBlock(doc, t, manifest, contentLeft, contentWidth, () => cursorY, (y) => (cursorY = y));
+      const maxRowH =
+        contentBottom - contentTop -
+        (t.card.padTop + t.card.labelSize + t.card.gapAfterLabel + t.card.padBottom);
+      for (const group of manifest.groups) {
+        const { columns, colW, rows } = layoutGroup(group, maxRowH);
+        renderGroup(doc, t, {
+          group, rows, columns, colW, contentLeft, contentWidth, contentTop, contentBottom,
+          getY: () => cursorY, setY: (y) => (cursorY = y), startPage,
+        });
+      }
+      const range = doc.bufferedPageRange();
+      for (let i = 0; i < range.count; i++) {
+        doc.switchToPage(range.start + i);
+        drawHeader(doc, t, contentLeft, contentRight, headerY);
+        drawFooter(doc, t, contentLeft, contentRight, footerY, i + 1, range.count, manifest);
+      }
+      doc.flushPages();
+      doc.end();
+    };
+
+    (t.paged ? renderPaged : renderContinuous)();
   });
 }
 
@@ -222,6 +242,43 @@ function drawTitleBlock(doc, t, manifest, left, width, getY, setY) {
     y = doc.y;
   }
   setY(y + t.title.gapBelow);
+}
+
+/** Draw one bordered card (border + label + image rows) at y. Returns its height. */
+function drawCard(doc, t, { group, rows, columns, colW, contentLeft, contentWidth, y, first = true }) {
+  const labelH = t.card.labelSize + t.card.gapAfterLabel;
+  const rowsH = rows.reduce((s, r, i) => s + r.height + (i ? t.grid.gap : 0), 0);
+  const segHeight = t.card.padTop + labelH + rowsH + t.card.padBottom;
+
+  doc
+    .roundedRect(contentLeft, y, contentWidth, segHeight, t.card.radius)
+    .lineWidth(t.card.border)
+    .strokeColor(t.colors.border)
+    .stroke();
+
+  let innerY = y + t.card.padTop;
+  if (first) doc.font("bold").fontSize(t.card.labelSize).fillColor(t.colors.text);
+  else doc.font("semibold").fontSize(t.card.labelSize - 1).fillColor(t.colors.muted);
+  doc.text(first ? group.name : `${group.name} (cont.)`, contentLeft + t.card.padX, innerY, {
+    width: contentWidth - 2 * t.card.padX,
+    lineBreak: false,
+  });
+  innerY += labelH;
+
+  const innerW = contentWidth - 2 * t.card.padX;
+  for (let r = 0; r < rows.length; r++) {
+    const row = rows[r];
+    const rowTop = innerY;
+    let x = contentLeft + t.card.padX;
+    for (const box of row.cells) {
+      const cellX = columns === 1 ? x + (innerW - box.w) / 2 : x + (colW - box.w) / 2;
+      const cellY = rowTop + (row.height - box.h) / 2;
+      doc.image(box.img.buffer, cellX, cellY, { width: box.w, height: box.h });
+      x += colW + t.grid.gap;
+    }
+    innerY += row.height + (r < rows.length - 1 ? t.grid.gap : 0);
+  }
+  return segHeight;
 }
 
 /**

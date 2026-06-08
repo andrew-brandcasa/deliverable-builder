@@ -87,6 +87,7 @@ export async function buildFromManifest(manifestPath, opts = {}) {
   const theme = {};
   if (opts.columns) theme.grid = { columns: opts.columns };
   if (opts.page) theme.page = parsePage(opts.page);
+  if (opts.paged) theme.paged = true;
 
   log(`Rendering PDF…`);
   await renderDeliverable({ manifest: renderManifest, outPath, theme });
@@ -190,6 +191,7 @@ if (isMain) {
     quality: a.quality ? Number(a.quality) : undefined,
     columns: a.columns ? Number(a.columns) : undefined,
     page: typeof a.page === "string" ? a.page : undefined,
+    paged: a.paged === true,
   }).catch((e) => {
     console.error("\nError:", e.message);
     process.exit(1);
