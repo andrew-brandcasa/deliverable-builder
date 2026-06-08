@@ -26,7 +26,7 @@ export const DEFAULT_THEME = {
   margin: { x: 37, top: 30, bottom: 30 },
   band: { height: 18, reviewSize: 10, reviewText: "REVIEW DOCUMENT" },
   colors: {
-    bg: "#FAFAFA",
+    bg: "#FFFFFF",
     text: "#0A0A0A",
     muted: "#7A7A7A",
     border: "#1A1A1A",
@@ -44,7 +44,10 @@ export const DEFAULT_THEME = {
     gapBetween: 28,
   },
   grid: { columns: 2, gap: 13 },
-  texture: { enabled: true, step: 30, radius: 0.7, opacity: 0.05 },
+  // The brandcasa background pattern, tiled across the page (shows through the
+  // card borders too, like the Figma delivery). tile = tile size in points.
+  texture: { enabled: true, tile: 160, opacity: 1 },
+  texturePath: join(ASSETS, "bg-texture.png"),
   fonts: {
     regular: join(ASSETS, "fonts", "Inter-Regular.ttf"),
     semibold: join(ASSETS, "fonts", "Inter-SemiBold.ttf"),
@@ -186,15 +189,16 @@ export function renderDeliverable({ manifest, outPath, theme: overrides = {} }) 
 function drawBackground(doc, t, PW, PH) {
   doc.save();
   doc.rect(0, 0, PW, PH).fill(t.colors.bg);
-  if (t.texture.enabled) {
-    doc.fillColor(t.colors.dot).fillOpacity(t.texture.opacity);
-    const { step, radius } = t.texture;
-    for (let y = step; y < PH; y += step) {
-      for (let x = step; x < PW; x += step) {
-        doc.circle(x, y, radius).fill();
+  if (t.texture.enabled && t.texturePath) {
+    const tex = doc.openImage(t.texturePath); // embedded once, referenced per tile
+    const s = t.texture.tile;
+    if (t.texture.opacity < 1) doc.opacity(t.texture.opacity);
+    for (let y = 0; y < PH; y += s) {
+      for (let x = 0; x < PW; x += s) {
+        doc.image(tex, x, y, { width: s, height: s });
       }
     }
-    doc.fillOpacity(1);
+    doc.opacity(1);
   }
   doc.restore();
 }
